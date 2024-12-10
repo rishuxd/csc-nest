@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package message;
+
+service MessageService {
+  rpc SendMessage(SendMessageRequest) returns (SendMessageResponse);
+  rpc EditMessage(EditMessageRequest) returns (EditMessageResponse);
+  rpc DeleteMessage(DeleteMessageRequest) returns (DeleteMessageResponse);
+  rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse);
+  rpc MarkMessageAsRead(MarkMessageAsReadRequest) returns (MarkMessageAsReadResponse);
+}
+
+message Message {
+  string id = 1;
+  string chatId = 2;
+  string senderId = 3;
+  MessageType messageType = 4;
+  ContentType contentType = 5;
+  string content = 6;
+  string mediaUrl = 7;
+  repeated string readBy = 8;
+  repeated string deletedFor = 9;
+  repeated string taggedUser = 10;
+  string replyTo = 11;
+  bool isEdited = 12;
+  string createdAt = 13;
+  string updatedAt = 14;
+}
+
+enum MessageType {
+  MSG = 0;
+  INFO = 1;
+}
+
+enum ContentType {
+  TEXT = 0;
+  IMAGE = 1;
+  VIDEO = 2;
+  AUDIO = 3;
+  FILE = 4;
+}
+
+message SendMessageRequest {
+  string chatId = 1;
+  string senderId = 2;
+  MessageType messageType = 3;
+  ContentType contentType = 4;
+  string content = 5;
+  string mediaUrl = 6;
+  repeated string taggedUser = 7;
+  string replyTo = 8;
+}
+
+message SendMessageResponse {
+  Message message = 1;
+}
+
+message EditMessageRequest {
+  string messageId = 1;
+  string userId = 2;
+  string newContent = 3;
+  repeated string newTaggedUser = 4;
+}
+
+message EditMessageResponse {
+  string message = 1;
+}

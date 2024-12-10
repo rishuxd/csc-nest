@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+package task;
+
+service TaskService {
+  rpc CreateTask(CreateTaskRequest) returns (TaskResponse);
+  rpc GetTaskById(GetTaskByIdRequest) returns (TaskResponse);
+  
+  rpc UpdateTask(UpdateTaskRequest) returns (TaskResponse);
+  rpc DeleteTask(DeleteTaskRequest) returns (DeleteTaskResponse);
+  
+  rpc GetTasksByAssignee(GetTasksByAssigneeRequest) returns (TaskListResponse);
+  rpc GetTasksByCreator(GetTasksByCreatorRequest) returns (TaskListResponse);
+}
+
+message Task {
+  string id = 1;
+  string title = 2;
+  string desc = 3;
+  string assignedBy = 4;
+  string assignedTo = 5;
+  string status = 6;
+  string priority = 7;
+  string dueDate = 8;
+  repeated string tags = 9;
+  map<string, string> metadata = 10;
+}
+
+message CreateTaskRequest {
+  string title = 1;
+  string desc = 2;
+  string assignedBy = 3;
+  string assignedTo = 4;
+  string priority = 5;
+  string dueDate = 6;
+  repeated string tags = 7;
+  map<string, string> metadata = 8;
+}
+
+message GetTaskByIdRequest {
+  string id = 1;
+}
+
+message UpdateTaskRequest {
+  string id = 1;
+  string title = 2;
+  string desc = 3;
+  string priority = 4;
+  string status = 5;
+  string dueDate = 6;
+  repeated string tags = 7;
+  map<string, string> metadata = 8;
+}
+
+message DeleteTaskRequest {
+  string id = 1;
+}
+
+message GetTasksByAssigneeRequest {
+  string assignedTo = 1;
+}
+
+message GetTasksByCreatorRequest {
+  string assignedBy = 1;
+}
+
+message TaskResponse {
+  Task task = 1;
+}
+
+message DeleteTaskResponse {
+  string message = 1;
+  bool success = 2;
+}
+
+message TaskListResponse {
+  repeated Task tasks = 1;
+}

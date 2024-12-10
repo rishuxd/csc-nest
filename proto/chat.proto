@@ -1,0 +1,154 @@
+syntax = "proto3";
+
+package chat;
+
+service ChatService {
+  rpc CreateChat(CreateChatRequest) returns (CreateChatResponse);
+  rpc GetChatById(GetChatByIdRequest) returns (GetChatByIdResponse);
+  rpc ClearChat(ClearChatRequest) returns (ClearChatResponse);
+  rpc DeleteChat(DeleteChatRequest) returns (DeleteChatResponse);
+  rpc ExitChat(ExitChatRequest) returns (ExitChatResponse);
+  rpc AddParticipant(AddParticipantRequest) returns (AddParticipantResponse);
+  rpc RemoveParticipant(RemoveParticipantRequest) returns (RemoveParticipantResponse);
+  rpc UpdateGroupName(UpdateGroupNameRequest) returns (UpdateGroupNameResponse);
+  rpc UpdateGroupDescription(UpdateGroupDescriptionRequest) returns (UpdateGroupDescriptionResponse);
+  rpc UpdateGroupPicture(UpdateGroupPictureRequest) returns (UpdateGroupPictureResponse);
+  rpc PromoteToAdmin(PromoteToAdminRequest) returns (PromoteToAdminResponse);
+  rpc DemoteFromAdmin(DemoteFromAdminRequest) returns (DemoteFromAdminResponse);
+  rpc GetUserChats(GetUserChatsRequest) returns (GetUserChatsResponse);
+}
+
+message Chat {
+  string id = 1;
+  repeated string participants = 2;
+  repeated string leftParticipants = 3;
+  bool isGroup = 4;
+  string groupName = 5;
+  string groupDesc = 6;
+  string groupPicture = 7;
+  repeated string groupAdmin = 8;
+  string linkedTaskId = 9;
+  string lastMsg = 10;
+  map<string, string> lastClearedAt = 11;
+  repeated string deletedFor = 12;
+}
+
+message CreateChatRequest {
+  repeated string participants = 1;
+  bool isGroup = 2;
+  string groupName = 3;
+  string groupDesc = 4;
+  string groupPicture = 5;
+  repeated string groupAdmin = 6;
+  string linkedTaskId = 7;
+}
+
+message CreateChatResponse {
+  Chat chat = 1;
+}
+
+message GetChatByIdRequest {
+  string id = 1;
+}
+
+message GetChatByIdResponse {
+  Chat chat = 1;
+}
+
+message ClearChatRequest {
+  string chatId = 1;
+  string userId = 2;
+}
+
+message ClearChatResponse {
+  string message = 1;
+}
+
+message DeleteChatRequest {
+  string chatId = 1;
+  string userId = 2;
+}
+
+message DeleteChatResponse {
+  string message = 1;
+}
+
+message ExitChatRequest {
+  string chatId = 1;
+  string userId = 2;
+}
+
+message ExitChatResponse {
+  string message = 1;
+}
+
+message AddParticipantRequest {
+  string chatId = 1;
+  string userId = 2;
+}
+
+message AddParticipantResponse {
+  string message = 1;
+}
+
+message RemoveParticipantRequest {
+  string chatId = 1;
+  string userId = 2;
+}
+
+message RemoveParticipantResponse {
+  string message = 1;
+}
+
+message UpdateGroupNameRequest {
+  string chatId = 1;
+  string groupName = 2;
+}
+
+message UpdateGroupNameResponse {
+  string message = 1;
+}
+
+message UpdateGroupDescriptionRequest {
+  string chatId = 1;
+  string groupDesc = 2;
+}
+
+message UpdateGroupDescriptionResponse {
+  string message = 1;
+}
+
+message UpdateGroupPictureRequest {
+  string chatId = 1;
+  string groupPicture = 2;
+}
+
+message UpdateGroupPictureResponse {
+  string message = 1;
+}
+
+message PromoteToAdminRequest {
+  string chatId = 1;
+  string userId = 2;
+}
+
+message PromoteToAdminResponse {
+  string message = 1;
+}
+
+message DemoteFromAdminRequest {
+  string chatId = 1;
+  string userId = 2;
+}
+
+message DemoteFromAdminResponse {
+  string message = 1;
+}
+
+message GetUserChatsRequest {
+  string userId = 1;
+}
+
+message GetUserChatsResponse {
+  repeated Chat chats = 1;
+}

@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package cmnt;
+
+enum CmntType {
+  MSG = 0;
+  INFO = 1;
+}
+
+enum ContentType {
+  TEXT = 0;
+  IMAGE = 1;
+  VIDEO = 2;
+  AUDIO = 3;
+  FILE = 4;
+}
+
+service CmntService {
+  rpc AddCmnt(AddCmntRequest) returns (CmntResponse);
+  rpc EditCmnt(EditCmntRequest) returns (CmntResponse);
+  rpc DeleteCmnt(DeleteCmntRequest) returns (DeleteCmntResponse);
+  
+  rpc GetCmntsByTask(GetCmntsByTaskRequest) returns (CmntListResponse);
+}
+
+message Cmnt {
+  string id = 1;
+  string taskId = 2;
+  string senderId = 3;
+  CmntType cmntType = 4;
+  ContentType contentType = 5;
+  string content = 6;
+  string mediaUrl = 7;
+  bool isEdited = 8;
+  bool isDeleted = 9;
+  repeated string taggedUser = 10;
+  string replyTo = 11;
+  string createdAt = 12;
+  string updatedAt = 13;
+}
+
+message AddCmntRequest {
+  string taskId = 1;
+  string senderId = 2;
+  CmntType cmntType = 3;
+  ContentType contentType = 4;
+  string content = 5;
+  string mediaUrl = 6;
+  string replyTo = 7;
+  repeated string taggedUser = 8;
+}
+
+message EditCmntRequest {
+  string cmntId = 1;
+  string senderId = 2;
+  string content = 3;
+  repeated string taggedUser = 4;
+}
+
+message DeleteCmntRequest {
+  string cmntId = 1;
+  string senderId = 2;
+}
+
+message GetCmntsByTaskRequest {
+  string taskId = 1;
+}
+
+message CmntResponse {
+  Cmnt cmnt = 1;
+}
+
+message CmntListResponse {
+  repeated Cmnt cmnts = 1;
+}
+
+message DeleteCmntResponse {
+  string message = 1;
+  bool success = 2;
+}
