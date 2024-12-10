@@ -1,7 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/nest-cli",
   "collection": "@nestjs/schematics",
-  "sourceRoot": "apps/api-gateway/src",
+  "sourceRoot": "./",
+  "entryFile": "src/main",
   "compilerOptions": {
     "deleteOutDir": true,
     "webpack": true,
@@ -13,28 +14,34 @@
     "api-gateway": {
       "type": "application",
       "root": "apps/api-gateway",
-      "entryFile": "main",
-      "sourceRoot": "apps/api-gateway/src",
+      "entryFile": "src/main",
+      "sourceRoot": "./",
       "compilerOptions": {
-        "tsConfigPath": "apps/api-gateway/tsconfig.app.json"
+        "tsConfigPath": "apps/api-gateway/tsconfig.app.json",
+        "assets": ["proto/*.proto"],
+        "watchAssets": true
       }
     },
     "task-service": {
       "type": "application",
       "root": "apps/task-service",
-      "entryFile": "main",
-      "sourceRoot": "apps/task-service/src",
+      "entryFile": "src/main",
+      "sourceRoot": "./",
       "compilerOptions": {
-        "tsConfigPath": "apps/task-service/tsconfig.app.json"
+        "tsConfigPath": "apps/task-service/tsconfig.app.json",
+        "assets": ["proto/task.proto", "proto/cmnt.proto"],
+        "watchAssets": true
       }
     },
     "notification-service": {
       "type": "application",
       "root": "apps/notification-service",
-      "entryFile": "main",
-      "sourceRoot": "apps/notification-service/src",
+      "entryFile": "src/main",
+      "sourceRoot": "./",
       "compilerOptions": {
-        "tsConfigPath": "apps/notification-service/tsconfig.app.json"
+        "tsConfigPath": "apps/notification-service/tsconfig.app.json",
+        "assets": ["proto/*.proto"],
+        "watchAssets": true
       }
     }
   }
