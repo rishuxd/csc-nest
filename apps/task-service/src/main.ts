@@ -6,6 +6,12 @@ import { join } from 'path';
 async function bootstrap() {
   const app = await NestFactory.create(TaskServiceModule);
 
+  app.enableCors({
+    origin: 'http://localhost:3000',
+    methods: 'GET,HEAD,OPTIONS',
+    credentials: true,
+  });
+
   app.connectMicroservice({
     transport: Transport.GRPC,
     options: {

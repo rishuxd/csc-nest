@@ -18,6 +18,7 @@ import {
 } from 'types/cmnt';
 import { SseService } from '../sse/sse.service';
 import { Task } from 'types/task';
+import { TaskServiceKafkaProducerService } from '../kafka/kafka-producer.service';
 
 const CmntTypeEnum = {
   0: 'MSG',
@@ -38,8 +39,10 @@ export class CmntService {
     @InjectModel('Cmnt') private readonly cmntModel: Model<Cmnt>,
     @InjectModel('Task') private readonly taskModel: Model<Task>,
     private readonly sseService: SseService,
+    private readonly cmntProducer: TaskServiceKafkaProducerService,
   ) {}
 
+  // Add Comment
   async addCmnt(request: AddCmntRequest): Promise<CmntResponse> {
     if (!request.taskId || !request.senderId || !request.content) {
       throw new BadRequestException(
@@ -47,7 +50,12 @@ export class CmntService {
       );
     }
 
-    const task = await this.taskModel.findById(request.taskId).exec();
+    const task = await this.taskModel
+      .findById(request.taskId)
+      .select('assignedTo assignedBy')
+      .lean()
+      .exec();
+
     if (!task) {
       throw new NotFoundException('Task not found.');
     }
@@ -59,28 +67,36 @@ export class CmntService {
     };
 
     try {
-      const createdCmnt = new this.cmntModel(cmntData);
-      const savedCmnt = await createdCmnt.save();
+      const createdCmnt = await new this.cmntModel(cmntData).save();
 
       const participants = [task.assignedTo, task.assignedBy].filter(
         (userId) => userId !== request.senderId,
       );
 
-      this.sseService.broadcastToUsers(participants, savedCmnt);
+      const sseSubject = this.sseService.getSubjects();
 
-      return { cmnt: savedCmnt };
+      this.sseService.broadcastToUsers(participants, createdCmnt);
+
+      return { cmnt: createdCmnt };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to add comment: ', error);
+      throw new InternalServerErrorException(
+        'Failed to add comment.',
+        error.message,
+      );
     }
   }
 
+  // Delete Comment (Soft Delete)
   async deleteCmnt(request: DeleteCmntRequest): Promise<DeleteCmntResponse> {
     if (!request.cmntId || !request.senderId) {
       throw new BadRequestException('Comment ID and Sender ID are required.');
     }
 
     try {
-      const cmntToDelete = await this.cmntModel.findById(request.cmntId).exec();
+      const cmntToDelete = await this.cmntModel
+        .findById(request.cmntId)
+        .lean()
+        .exec();
       if (!cmntToDelete) {
         throw new NotFoundException('Comment not found.');
       }
@@ -91,7 +107,12 @@ export class CmntService {
         );
       }
 
-      const task = await this.taskModel.findById(cmntToDelete.taskId).exec();
+      const task = await this.taskModel
+        .findById(cmntToDelete.taskId)
+        .select('assignedTo assignedBy')
+        .lean()
+        .exec();
+
       if (!task) {
         throw new NotFoundException('Task not found.');
       }
@@ -103,8 +124,9 @@ export class CmntService {
         taggedUser: [],
       };
 
-      const deletedCmnt = this.cmntModel
+      const deletedCmnt = await this.cmntModel
         .findByIdAndUpdate(request.cmntId, deleteReq, { new: true })
+        .lean()
         .exec();
 
       const participants = [task.assignedTo, task.assignedBy].filter(
@@ -116,12 +138,13 @@ export class CmntService {
       return { message: 'Comment deleted successfully.', success: true };
     } catch (error) {
       throw new InternalServerErrorException(
-        'Failed to delete comment: ',
-        error,
+        'Failed to delete comment.',
+        error.message,
       );
     }
   }
 
+  // Edit Comment
   async editCmnt(request: EditCmntRequest): Promise<CmntResponse> {
     if (!request.cmntId || !request.senderId || !request.content) {
       throw new BadRequestException(
@@ -132,24 +155,25 @@ export class CmntService {
     try {
       const updateRequest = {
         isEdited: true,
+        ...(request.content && { content: request.content }),
+        ...(request.taggedUser && { taggedUser: request.taggedUser }),
       };
-
-      if (request.content) {
-        updateRequest['content'] = request.content;
-      }
-      if (request.taggedUser) {
-        updateRequest['taggedUser'] = request.taggedUser;
-      }
 
       const updatedCmnt = await this.cmntModel
         .findByIdAndUpdate(request.cmntId, updateRequest, { new: true })
+        .lean()
         .exec();
 
       if (!updatedCmnt) {
         throw new NotFoundException('Comment not found.');
       }
 
-      const task = await this.taskModel.findById(updatedCmnt.taskId).exec();
+      const task = await this.taskModel
+        .findById(updatedCmnt.taskId)
+        .select('assignedTo assignedBy')
+        .lean()
+        .exec();
+
       if (!task) {
         throw new NotFoundException('Task not found.');
       }
@@ -162,10 +186,14 @@ export class CmntService {
 
       return { cmnt: updatedCmnt };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to edit comment: ', error);
+      throw new InternalServerErrorException(
+        'Failed to edit comment.',
+        error.message,
+      );
     }
   }
 
+  // Get Comments by Task
   async getCmntsByTask(
     request: GetCmntsByTaskRequest,
   ): Promise<CmntListResponse> {
@@ -176,6 +204,7 @@ export class CmntService {
     try {
       const comments = await this.cmntModel
         .find({ taskId: request.taskId })
+        .lean()
         .exec();
 
       if (!comments || comments.length === 0) {
@@ -185,8 +214,8 @@ export class CmntService {
       return { cmnts: comments };
     } catch (error) {
       throw new InternalServerErrorException(
-        'Failed to fetch comments: ',
-        error,
+        'Failed to fetch comments.',
+        error.message,
       );
     }
   }
