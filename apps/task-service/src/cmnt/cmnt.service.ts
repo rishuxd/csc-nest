@@ -70,7 +70,7 @@ export class CmntService {
 
       return { cmnt: savedCmnt };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to add comment.');
+      throw new InternalServerErrorException('Failed to add comment: ', error);
     }
   }
 
@@ -80,16 +80,45 @@ export class CmntService {
     }
 
     try {
-      const result = await this.cmntModel
-        .findByIdAndDelete(request.cmntId)
-        .exec();
-      if (!result) {
+      const cmntToDelete = await this.cmntModel.findById(request.cmntId).exec();
+      if (!cmntToDelete) {
         throw new NotFoundException('Comment not found.');
       }
 
+      if (cmntToDelete.senderId !== request.senderId) {
+        throw new BadRequestException(
+          'You are not authorized to delete this comment.',
+        );
+      }
+
+      const task = await this.taskModel.findById(cmntToDelete.taskId).exec();
+      if (!task) {
+        throw new NotFoundException('Task not found.');
+      }
+
+      const deleteReq = {
+        isDeleted: true,
+        content: 'This comment has been deleted.',
+        mediaUrl: '',
+        taggedUser: [],
+      };
+
+      const deletedCmnt = this.cmntModel
+        .findByIdAndUpdate(request.cmntId, deleteReq, { new: true })
+        .exec();
+
+      const participants = [task.assignedTo, task.assignedBy].filter(
+        (userId) => userId !== request.senderId,
+      );
+
+      this.sseService.broadcastToUsers(participants, deletedCmnt);
+
       return { message: 'Comment deleted successfully.', success: true };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to delete comment.');
+      throw new InternalServerErrorException(
+        'Failed to delete comment: ',
+        error,
+      );
     }
   }
 
@@ -101,8 +130,19 @@ export class CmntService {
     }
 
     try {
+      const updateRequest = {
+        isEdited: true,
+      };
+
+      if (request.content) {
+        updateRequest['content'] = request.content;
+      }
+      if (request.taggedUser) {
+        updateRequest['taggedUser'] = request.taggedUser;
+      }
+
       const updatedCmnt = await this.cmntModel
-        .findByIdAndUpdate(request.cmntId, request, { new: true })
+        .findByIdAndUpdate(request.cmntId, updateRequest, { new: true })
         .exec();
 
       if (!updatedCmnt) {
@@ -122,7 +162,7 @@ export class CmntService {
 
       return { cmnt: updatedCmnt };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to edit comment.');
+      throw new InternalServerErrorException('Failed to edit comment: ', error);
     }
   }
 
@@ -144,7 +184,10 @@ export class CmntService {
 
       return { cmnts: comments };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to fetch comments.');
+      throw new InternalServerErrorException(
+        'Failed to fetch comments: ',
+        error,
+      );
     }
   }
 }
