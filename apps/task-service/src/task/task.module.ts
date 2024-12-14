@@ -4,6 +4,7 @@ import { TaskController } from './task.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { TaskSchema } from './schema/task.schema';
+import { TaskServiceKafkaProducerService } from '../kafka/kafka-producer.service';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { TaskSchema } from './schema/task.schema';
     MongooseModule.forFeature([{ name: 'Task', schema: TaskSchema }]),
   ],
   controllers: [TaskController],
-  providers: [TaskService],
+  providers: [TaskService, TaskServiceKafkaProducerService],
 })
 export class TaskModule {}

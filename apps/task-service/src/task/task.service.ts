@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import {
@@ -13,21 +13,42 @@ import {
   UpdateTaskRequest,
   Task,
 } from 'types/task';
+import { TaskServiceKafkaProducerService } from '../kafka/kafka-producer.service';
 
 @Injectable()
 export class TaskService {
-  constructor(@InjectModel('Task') private readonly taskModel: Model<Task>) {}
+  constructor(
+    @InjectModel('Task') private readonly taskModel: Model<Task>,
+    private readonly taskProducer: TaskServiceKafkaProducerService,
+  ) {}
 
   async createTask(request: CreateTaskRequest): Promise<TaskResponse> {
-    const createdTask = new this.taskModel(request);
-    const savedTask = await createdTask.save();
-    return { task: savedTask };
+    const createdTask = await this.taskModel.create(request);
+
+    this.taskProducer.emitEvent('task-created', createdTask).catch((err) => {
+      console.error('Failed to emit task-created event:', err);
+    });
+
+    return { task: createdTask };
   }
 
   async deleteTask(request: DeleteTaskRequest): Promise<DeleteTaskResponse> {
-    const result = await this.taskModel.findByIdAndDelete(request.id).exec();
-    const message = result ? 'Task deleted successfully.' : 'Task not found!';
-    return { message, success: !!result };
+    const task = await this.taskModel.findById(request.id).exec();
+
+    if (!task) {
+      throw new NotFoundException('Task not found!');
+    }
+
+    await this.taskModel.deleteOne({ _id: request.id }).exec();
+
+    this.taskProducer.emitEvent('task-deleted', task).catch((err) => {
+      console.error('Failed to emit task-deleted event:', err);
+    });
+
+    return {
+      message: `Task '${task.title}' deleted successfully.`,
+      success: true,
+    };
   }
 
   async updateTask(request: UpdateTaskRequest): Promise<TaskResponse> {
@@ -36,8 +57,12 @@ export class TaskService {
       .exec();
 
     if (!updatedTask) {
-      throw new Error('Task not found!');
+      throw new NotFoundException('Task not found!');
     }
+
+    this.taskProducer.emitEvent('task-updated', updatedTask).catch((err) => {
+      console.error('Failed to emit task-updated event:', err);
+    });
 
     return { task: updatedTask };
   }
@@ -46,7 +71,7 @@ export class TaskService {
     const task = await this.taskModel.findById(request.id).exec();
 
     if (!task) {
-      throw new Error('Task not found!');
+      throw new NotFoundException('Task not found!');
     }
 
     return { task };
