@@ -38,7 +38,7 @@ export class Cmnt extends Document {
   @Prop({ type: [Types.ObjectId], default: [] })
   taggedUser: Types.ObjectId[];
 
-  @Prop({ type: Types.ObjectId, default: null })
+  @Prop({ type: Types.ObjectId, ref: 'Cmnt', default: null })
   replyTo: Types.ObjectId;
 }
 

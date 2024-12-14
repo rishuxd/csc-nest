@@ -75,7 +75,10 @@ export class CmntService {
 
       const sseSubject = this.sseService.getSubjects();
 
-      this.sseService.broadcastToUsers(participants, createdCmnt);
+      this.sseService.broadcastToUsers(participants, {
+        type: 'add-cmnt',
+        cmnt: createdCmnt,
+      });
 
       return { cmnt: createdCmnt };
     } catch (error) {
@@ -133,7 +136,10 @@ export class CmntService {
         (userId) => userId !== request.senderId,
       );
 
-      this.sseService.broadcastToUsers(participants, deletedCmnt);
+      this.sseService.broadcastToUsers(participants, {
+        type: 'delete-cmnt',
+        cmnt: deletedCmnt,
+      });
 
       return { message: 'Comment deleted successfully.', success: true };
     } catch (error) {
@@ -182,7 +188,10 @@ export class CmntService {
         (userId) => userId !== request.senderId,
       );
 
-      this.sseService.broadcastToUsers(participants, updatedCmnt);
+      this.sseService.broadcastToUsers(participants, {
+        type: 'edit-cmnt',
+        cmnt: updatedCmnt,
+      });
 
       return { cmnt: updatedCmnt };
     } catch (error) {
