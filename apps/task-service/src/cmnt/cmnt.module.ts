@@ -23,5 +23,6 @@ import { TaskServiceKafkaProducerService } from '../kafka/kafka-producer.service
   ],
   controllers: [CmntController],
   providers: [CmntService, TaskServiceKafkaProducerService],
+  exports: [CmntService],
 })
 export class CmntModule {}
