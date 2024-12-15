@@ -42,7 +42,6 @@ export class CmntService {
     private readonly cmntProducer: TaskServiceKafkaProducerService,
   ) {}
 
-  // Add Comment
   async addCmnt(request: AddCmntRequest): Promise<CmntResponse> {
     if (!request.taskId || !request.senderId || !request.content) {
       throw new BadRequestException(
@@ -75,9 +74,25 @@ export class CmntService {
 
       const sseSubject = this.sseService.getSubjects();
 
-      this.sseService.broadcastToUsers(participants, {
+      const [broadcastUsers, notifyUsers] = participants.reduce(
+        ([broadcast, notify], userId) => {
+          if (userId in sseSubject) {
+            broadcast.push(userId);
+          } else {
+            notify.push(userId);
+          }
+          return [broadcast, notify];
+        },
+        [[], []] as [string[], string[]],
+      );
+
+      this.sseService.broadcastToUsers(broadcastUsers, {
         type: 'add-cmnt',
         cmnt: createdCmnt,
+      });
+
+      this.cmntProducer.emitEvent('cmnt-created', createdCmnt).catch((err) => {
+        console.error('Failed to emit cmnt-created event:', err);
       });
 
       return { cmnt: createdCmnt };
@@ -89,7 +104,6 @@ export class CmntService {
     }
   }
 
-  // Delete Comment (Soft Delete)
   async deleteCmnt(request: DeleteCmntRequest): Promise<DeleteCmntResponse> {
     if (!request.cmntId || !request.senderId) {
       throw new BadRequestException('Comment ID and Sender ID are required.');
@@ -150,7 +164,6 @@ export class CmntService {
     }
   }
 
-  // Edit Comment
   async editCmnt(request: EditCmntRequest): Promise<CmntResponse> {
     if (!request.cmntId || !request.senderId || !request.content) {
       throw new BadRequestException(
@@ -202,7 +215,6 @@ export class CmntService {
     }
   }
 
-  // Get Comments by Task
   async getCmntsByTask(
     request: GetCmntsByTaskRequest,
   ): Promise<CmntListResponse> {
@@ -213,7 +225,6 @@ export class CmntService {
     try {
       const comments = await this.cmntModel
         .find({ taskId: request.taskId })
-        .lean()
         .exec();
 
       if (!comments || comments.length === 0) {

@@ -14,16 +14,31 @@ import {
   Task,
 } from 'types/task';
 import { TaskServiceKafkaProducerService } from '../kafka/kafka-producer.service';
+import { CmntService } from '../cmnt/cmnt.service';
+import { Cmnt } from 'types/cmnt';
 
 @Injectable()
 export class TaskService {
   constructor(
     @InjectModel('Task') private readonly taskModel: Model<Task>,
+    @InjectModel('Cmnt') private readonly cmntModel: Model<Cmnt>,
     private readonly taskProducer: TaskServiceKafkaProducerService,
+    private readonly cmntService: CmntService,
   ) {}
 
   async createTask(request: CreateTaskRequest): Promise<TaskResponse> {
     const createdTask = await this.taskModel.create(request);
+
+    await this.cmntModel.create({
+      taskId: createdTask._id.toString(),
+      senderId: createdTask.assignedBy,
+      cmntType: 1,
+      contentType: 0,
+      content: `Task '${createdTask.title}' created by ${createdTask.assignedBy}`,
+      mediaUrl: '',
+      replyTo: '',
+      taggedUser: [],
+    });
 
     this.taskProducer.emitEvent('task-created', createdTask).catch((err) => {
       console.error('Failed to emit task-created event:', err);
@@ -40,6 +55,8 @@ export class TaskService {
     }
 
     await this.taskModel.deleteOne({ _id: request.id }).exec();
+
+    await this.cmntModel.deleteMany({ taskId: request.id }).exec();
 
     this.taskProducer.emitEvent('task-deleted', task).catch((err) => {
       console.error('Failed to emit task-deleted event:', err);
@@ -60,8 +77,15 @@ export class TaskService {
       throw new NotFoundException('Task not found!');
     }
 
-    this.taskProducer.emitEvent('task-updated', updatedTask).catch((err) => {
-      console.error('Failed to emit task-updated event:', err);
+    this.cmntService.addCmnt({
+      taskId: updatedTask._id.toString(),
+      senderId: updatedTask.assignedBy,
+      cmntType: 1,
+      contentType: 0,
+      content: `Task '${updatedTask.title}' updated by ${updatedTask.assignedBy}`,
+      mediaUrl: '',
+      replyTo: '',
+      taggedUser: [],
     });
 
     return { task: updatedTask };
