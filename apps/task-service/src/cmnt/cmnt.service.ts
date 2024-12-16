@@ -43,10 +43,13 @@ export class CmntService {
   ) {}
 
   async addCmnt(request: AddCmntRequest): Promise<CmntResponse> {
-    if (!request.taskId || !request.senderId || !request.content) {
+    if (!request.taskId || !request.senderId) {
       throw new BadRequestException(
         'Task ID, Sender ID, and Content are required.',
       );
+    }
+    if (!request.content && !request.mediaUrl) {
+      throw new BadRequestException('Content or Media URL is required.');
     }
 
     const task = await this.taskModel
