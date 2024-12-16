@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package notify;
+
+message Notification {
+  string id = 1;
+  string createdAt = 2;
+  string updatedAt = 3;
+  repeated string participants = 4;
+  map<string, bool> readStatus = 5; // Tracks read/unread status for each participant
+  string title = 6;
+  string desc = 7;
+  string refId = 8;
+  string refName = 9;
+  string notifyType = 10;
+}
+
+message CreateNotificationRequest {
+  string title = 1;
+  string desc = 2;
+  repeated string participants = 3;
+  string refId = 4;
+  string refName = 5;
+  string notifyType = 6;
+}
+
+message CreateNotificationResponse {
+  Notification notification = 1;
+}
+
+message GetNotificationsRequest {
+  string userId = 1;
+  string cursor = 2; 
+  int32 limit = 3;  
+}
+
+message GetNotificationsResponse {
+  repeated Notification notifications = 1;
+  string nextCursor = 2; 
+  bool hasMore = 3;      
+}
+
+message UpdateNotificationRequest {
+  string id = 1;
+  string title = 2;
+  string desc = 3;
+  bool isRead = 4;
+  string userId = 5; 
+}
+
+message UpdateNotificationResponse {
+  Notification notification = 1;
+}
+
+message DeleteNotificationRequest {
+  string id = 1;
+}
+
+message DeleteNotificationResponse {
+  string message = 1;
+  bool success = 2;
+}
+
+message MarkAllAsReadRequest {
+  string userId = 1;
+}
+
+message MarkAllAsReadResponse {
+  string message = 1;
+  bool success = 2;
+}
+
+service NotifyService {
+  rpc CreateNotification(CreateNotificationRequest) returns (CreateNotificationResponse);
+  rpc GetNotifications(GetNotificationsRequest) returns (GetNotificationsResponse);
+  rpc UpdateNotification(UpdateNotificationRequest) returns (UpdateNotificationResponse);
+  rpc DeleteNotification(DeleteNotificationRequest) returns (DeleteNotificationResponse);
+  rpc MarkAllAsRead(MarkAllAsReadRequest) returns (MarkAllAsReadResponse);
+}

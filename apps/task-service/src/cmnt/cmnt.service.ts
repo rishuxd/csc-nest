@@ -44,9 +44,7 @@ export class CmntService {
 
   async addCmnt(request: AddCmntRequest): Promise<CmntResponse> {
     if (!request.taskId || !request.senderId) {
-      throw new BadRequestException(
-        'Task ID, Sender ID, and Content are required.',
-      );
+      throw new BadRequestException('Task ID and Sender ID are required.');
     }
     if (!request.content && !request.mediaUrl) {
       throw new BadRequestException('Content or Media URL is required.');
@@ -94,9 +92,11 @@ export class CmntService {
         cmnt: createdCmnt,
       });
 
-      this.cmntProducer.emitEvent('cmnt-created', createdCmnt).catch((err) => {
-        console.error('Failed to emit cmnt-created event:', err);
-      });
+      this.cmntProducer
+        .emitEvent('cmnt-created', notifyUsers, createdCmnt)
+        .catch((err) => {
+          console.error('Failed to emit cmnt-created event:', err);
+        });
 
       return { cmnt: createdCmnt };
     } catch (error) {
