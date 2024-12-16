@@ -3,7 +3,7 @@ import { SseService } from './sse.service';
 import { Observable } from 'rxjs';
 import { Response } from 'express';
 
-@Controller('task/sse')
+@Controller('notify/sse')
 export class SseController {
   constructor(private readonly sseService: SseService) {}
 
@@ -12,7 +12,6 @@ export class SseController {
     @Param('userId') userId: string,
     @Res() res: Response,
   ): Observable<any> {
-    // Set SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');

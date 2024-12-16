@@ -40,9 +40,13 @@ export class TaskService {
       taggedUser: [],
     });
 
-    this.taskProducer.emitEvent('task-created', createdTask).catch((err) => {
-      console.error('Failed to emit task-created event:', err);
-    });
+    const participants = [createdTask.assignedTo];
+
+    this.taskProducer
+      .emitEvent('task-created', participants, createdTask)
+      .catch((err) => {
+        console.error('Failed to emit task-created event:', err);
+      });
 
     return { task: createdTask };
   }
@@ -58,9 +62,13 @@ export class TaskService {
 
     await this.cmntModel.deleteMany({ taskId: request.id }).exec();
 
-    this.taskProducer.emitEvent('task-deleted', task).catch((err) => {
-      console.error('Failed to emit task-deleted event:', err);
-    });
+    const participants = [task.assignedTo];
+
+    this.taskProducer
+      .emitEvent('task-deleted', participants, task)
+      .catch((err) => {
+        console.error('Failed to emit task-deleted event:', err);
+      });
 
     return {
       message: `Task '${task.title}' deleted successfully.`,

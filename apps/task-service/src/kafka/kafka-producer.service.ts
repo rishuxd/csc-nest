@@ -20,7 +20,13 @@ export class TaskServiceKafkaProducerService {
     });
   }
 
-  async emitEvent(eventType: string, data: any): Promise<void> {
-    await this.client.emit('task-events', { eventType, data }).toPromise();
+  async emitEvent(
+    eventType: string,
+    participants: string[],
+    data: any,
+  ): Promise<void> {
+    await this.client
+      .emit('task-events', { eventType, data, participants })
+      .toPromise();
   }
 }

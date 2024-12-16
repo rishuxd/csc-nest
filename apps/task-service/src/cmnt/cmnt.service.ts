@@ -43,10 +43,8 @@ export class CmntService {
   ) {}
 
   async addCmnt(request: AddCmntRequest): Promise<CmntResponse> {
-    if (!request.taskId || !request.senderId || !request.content) {
-      throw new BadRequestException(
-        'Task ID, Sender ID, and Content are required.',
-      );
+    if (!request.taskId || !request.senderId) {
+      throw new BadRequestException('Task ID and Sender ID are required.');
     }
 
     const task = await this.taskModel
@@ -91,9 +89,11 @@ export class CmntService {
         cmnt: createdCmnt,
       });
 
-      this.cmntProducer.emitEvent('cmnt-created', createdCmnt).catch((err) => {
-        console.error('Failed to emit cmnt-created event:', err);
-      });
+      this.cmntProducer
+        .emitEvent('cmnt-created', notifyUsers, createdCmnt)
+        .catch((err) => {
+          console.error('Failed to emit cmnt-created event:', err);
+        });
 
       return { cmnt: createdCmnt };
     } catch (error) {
