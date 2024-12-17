@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NotificationSchema } from './schema/notification.schema';
 import { SseModule } from '../sse/sse.module';
+import { NotifyKafkaConsumerService } from '../kafka/kafka-consumer.service';
 
 @Module({
   imports: [
@@ -19,6 +20,6 @@ import { SseModule } from '../sse/sse.module';
     ]),
   ],
   controllers: [NotifyController],
-  providers: [NotifyService],
+  providers: [NotifyService, NotifyKafkaConsumerService],
 })
 export class NotifyModule {}

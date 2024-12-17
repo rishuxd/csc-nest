@@ -6,7 +6,7 @@ import { Cmnt } from 'types/cmnt';
 import { CreateNotificationRequest } from 'types/notify';
 
 @Injectable()
-export class MsgKafkaConsumerService implements OnModuleInit {
+export class NotifyKafkaConsumerService implements OnModuleInit {
   private readonly kafka = new Kafka({ brokers: ['localhost:9092'] });
   private readonly consumer: Consumer;
 
@@ -24,7 +24,7 @@ export class MsgKafkaConsumerService implements OnModuleInit {
       console.log('Kafka consumer connected and subscribed successfully.');
     } catch (error) {
       console.error('Error connecting/subscribing to Kafka:', error.message);
-      process.exit(1); // Exit the process or implement a retry logic
+      process.exit(1);
     }
 
     await this.consumer.run({
