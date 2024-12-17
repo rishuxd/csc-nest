@@ -51,7 +51,7 @@ export class MsgKafkaConsumerService implements OnModuleInit {
   private async handleTaskCreated(data: Task, participants: string[]) {
     const notificationData: CreateNotificationRequest = {
       title: 'Task Created',
-      desc: `Task '${data.title}' was created by ${data.assignedBy}`,
+      desc: `Task '${data.title}' is created.`,
       participants,
       refId: data.id,
       refName: 'Task',
@@ -64,7 +64,7 @@ export class MsgKafkaConsumerService implements OnModuleInit {
   private async handleTaskDeleted(data: Task, participants: string[]) {
     const notificationData: CreateNotificationRequest = {
       title: 'Task Deleted',
-      desc: `Task '${data.title}' was deleted.`,
+      desc: `Task '${data.title}' is deleted.`,
       participants,
       refId: data.id,
       refName: 'Task',
@@ -77,7 +77,7 @@ export class MsgKafkaConsumerService implements OnModuleInit {
   private async handleCmntCreated(data: Cmnt, participants: string[]) {
     const notificationData: CreateNotificationRequest = {
       title: 'Comment Added',
-      desc: `A new comment was added: '${data.content}'`,
+      desc: `A new comment is added: '${data.content}'`,
       participants,
       refId: data.id,
       refName: 'Comment',

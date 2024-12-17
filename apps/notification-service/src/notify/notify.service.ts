@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Mongoose, Types } from 'mongoose';
 import {
   CreateNotificationRequest,
   CreateNotificationResponse,
@@ -101,7 +101,8 @@ export class NotifyService {
   ): Promise<GetNotificationsResponse> {
     const { userId, cursor, limit = 10 } = request;
 
-    const query: any = { participants: userId };
+    const query: any = { participants: new Types.ObjectId(userId) };
+
     if (cursor) {
       query['_id'] = { $lt: new Types.ObjectId(cursor) };
     }
@@ -116,16 +117,8 @@ export class NotifyService {
       : null;
     const hasMore = notifications.length === limit;
 
-    const mappedNotifications = notifications.map((n) => {
-      const notificationObj = n.toObject();
-      return {
-        ...notificationObj,
-        isRead: notificationObj.readStatus[userId] || false,
-      };
-    });
-
     return {
-      notifications: mappedNotifications,
+      notifications,
       nextCursor,
       hasMore,
     };
