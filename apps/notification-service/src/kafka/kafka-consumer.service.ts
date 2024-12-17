@@ -15,34 +15,44 @@ export class MsgKafkaConsumerService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.consumer.connect();
-    await this.consumer.subscribe({
-      topic: 'task-events',
-      fromBeginning: true,
-    });
+    try {
+      await this.consumer.connect();
+      await this.consumer.subscribe({
+        topic: 'task-events',
+        fromBeginning: true,
+      });
+      console.log('Kafka consumer connected and subscribed successfully.');
+    } catch (error) {
+      console.error('Error connecting/subscribing to Kafka:', error.message);
+      process.exit(1); // Exit the process or implement a retry logic
+    }
 
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-        const { eventType, data, participants } = JSON.parse(
-          message.value.toString(),
-        );
+        try {
+          const { eventType, data, participants } = JSON.parse(
+            message.value.toString(),
+          );
 
-        console.log(
-          `Received event: ${eventType} with data: ${JSON.stringify(data)}`,
-        );
+          console.log(
+            `Received event: ${eventType} with data: ${JSON.stringify(data)}`,
+          );
 
-        switch (eventType) {
-          case 'task-created':
-            await this.handleTaskCreated(data, participants);
-            break;
-          case 'task-deleted':
-            await this.handleTaskDeleted(data, participants);
-            break;
-          case 'cmnt-created':
-            await this.handleCmntCreated(data, participants);
-            break;
-          default:
-            console.warn(`Unknown event type: ${eventType}`);
+          switch (eventType) {
+            case 'task-created':
+              await this.handleTaskCreated(data, participants);
+              break;
+            case 'task-deleted':
+              await this.handleTaskDeleted(data, participants);
+              break;
+            case 'cmnt-created':
+              await this.handleCmntCreated(data, participants);
+              break;
+            default:
+              console.warn(`Unknown event type: ${eventType}`);
+          }
+        } catch (error) {
+          console.error('Error processing Kafka message:', error.message);
         }
       },
     });
@@ -83,6 +93,8 @@ export class MsgKafkaConsumerService implements OnModuleInit {
       refName: 'Comment',
       notifyType: 'comment',
     };
+
+    console.log('Creating notification:', notificationData);
 
     await this.notifyService.createNotification(notificationData);
   }

@@ -14,6 +14,7 @@ export class TaskServiceKafkaProducerService {
       transport: Transport.KAFKA,
       options: {
         client: {
+          clientId: 'task-producer-client',
           brokers: ['localhost:9092'],
         },
       },
@@ -25,8 +26,14 @@ export class TaskServiceKafkaProducerService {
     participants: string[],
     data: any,
   ): Promise<void> {
-    await this.client
-      .emit('task-events', { eventType, data, participants })
-      .toPromise();
+    console.log('Emitting task-events event:', eventType, participants);
+    try {
+      await this.client
+        .emit('task-events', { eventType, data, participants })
+        .toPromise();
+      console.log('Message sent successfully');
+    } catch (error) {
+      console.error('Error emitting Kafka event:', error.message);
+    }
   }
 }

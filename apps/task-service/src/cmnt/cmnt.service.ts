@@ -87,6 +87,8 @@ export class CmntService {
         [[], []] as [string[], string[]],
       );
 
+      console.log('Emitting cmnt-created event:', notifyUsers, broadcastUsers);
+
       this.sseService.broadcastToUsers(broadcastUsers, {
         type: 'add-cmnt',
         cmnt: createdCmnt,
