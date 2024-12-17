@@ -87,15 +87,17 @@ export class CmntService {
         [[], []] as [string[], string[]],
       );
 
-      console.log('Emitting cmnt-created event:', notifyUsers, broadcastUsers);
-
       this.sseService.broadcastToUsers(broadcastUsers, {
         type: 'add-cmnt',
         cmnt: createdCmnt,
       });
 
+      const newCmnt = createdCmnt.toObject();
+      newCmnt.id = newCmnt._id.toString();
+      delete newCmnt._id;
+
       this.cmntProducer
-        .emitEvent('cmnt-created', notifyUsers, createdCmnt)
+        .emitEvent('cmnt-created', notifyUsers, newCmnt)
         .catch((err) => {
           console.error('Failed to emit cmnt-created event:', err);
         });

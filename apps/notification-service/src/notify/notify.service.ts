@@ -27,28 +27,33 @@ export class NotifyService {
   async createNotification(
     request: CreateNotificationRequest,
   ): Promise<CreateNotificationResponse> {
-    const readStatus = request.participants.reduce(
-      (status, participant) => {
-        status[participant] = false;
-        return status;
-      },
-      {} as Record<string, boolean>,
-    );
+    try {
+      const readStatus = request.participants.reduce(
+        (status, participant) => {
+          status[participant] = false;
+          return status;
+        },
+        {} as Record<string, boolean>,
+      );
 
-    const notification = new this.notificationModel({
-      ...request,
-      participants: request.participants.map((id) => new Types.ObjectId(id)),
-      readStatus,
-    });
+      const notification = new this.notificationModel({
+        ...request,
+        participants: request.participants.map((id) => new Types.ObjectId(id)),
+        readStatus,
+      });
 
-    const createdNotification = await notification.save();
+      const createdNotification = await notification.save();
 
-    this.sseService.broadcastToUsers(
-      request.participants,
-      createdNotification.toObject(),
-    );
+      console.log('Broadcasting notification to users:', request.participants);
+      this.sseService.broadcastToUsers(
+        request.participants,
+        createdNotification.toObject(),
+      );
 
-    return { notification: createdNotification.toObject() };
+      return { notification: createdNotification.toObject() };
+    } catch (error) {
+      console.error('Error creating notification:', error.message);
+    }
   }
 
   async deleteNotification(

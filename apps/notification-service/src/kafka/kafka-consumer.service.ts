@@ -34,10 +34,6 @@ export class NotifyKafkaConsumerService implements OnModuleInit {
             message.value.toString(),
           );
 
-          console.log(
-            `Received event: ${eventType} with data: ${JSON.stringify(data)}`,
-          );
-
           switch (eventType) {
             case 'task-created':
               await this.handleTaskCreated(data, participants);
@@ -93,8 +89,6 @@ export class NotifyKafkaConsumerService implements OnModuleInit {
       refName: 'Comment',
       notifyType: 'comment',
     };
-
-    console.log('Creating notification:', notificationData);
 
     await this.notifyService.createNotification(notificationData);
   }

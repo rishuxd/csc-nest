@@ -42,8 +42,12 @@ export class TaskService {
 
     const participants = [createdTask.assignedTo];
 
+    const newTask = createdTask.toObject();
+    newTask.id = newTask._id.toString();
+    delete newTask._id;
+
     this.taskProducer
-      .emitEvent('task-created', participants, createdTask)
+      .emitEvent('task-created', participants, newTask)
       .catch((err) => {
         console.error('Failed to emit task-created event:', err);
       });
@@ -64,8 +68,12 @@ export class TaskService {
 
     const participants = [task.assignedTo];
 
+    const newTask = task.toObject();
+    newTask.id = newTask._id.toString();
+    delete newTask._id;
+
     this.taskProducer
-      .emitEvent('task-deleted', participants, task)
+      .emitEvent('task-deleted', participants, newTask)
       .catch((err) => {
         console.error('Failed to emit task-deleted event:', err);
       });
