@@ -102,6 +102,7 @@ export class TaskService {
       mediaUrl: '',
       replyTo: '',
       taggedUser: [],
+      isTaskUpdate: true,
     });
 
     return { task: updatedTask };

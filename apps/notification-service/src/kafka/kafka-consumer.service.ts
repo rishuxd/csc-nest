@@ -41,6 +41,9 @@ export class NotifyKafkaConsumerService implements OnModuleInit {
             case 'task-deleted':
               await this.handleTaskDeleted(data, participants);
               break;
+            case 'task-updated':
+              await this.handleTaskUpdate(data, participants);
+              break;
             case 'cmnt-created':
               await this.handleCmntCreated(data, participants);
               break;
@@ -83,11 +86,24 @@ export class NotifyKafkaConsumerService implements OnModuleInit {
   private async handleCmntCreated(data: Cmnt, participants: string[]) {
     const notificationData: CreateNotificationRequest = {
       title: 'Comment Added',
-      desc: `A new comment is added: '${data.content}'`,
+      desc: data.content,
       participants,
       refId: data.id,
-      refName: 'Comment',
+      refName: 'Task',
       notifyType: 'comment',
+    };
+
+    await this.notifyService.createNotification(notificationData);
+  }
+
+  private async handleTaskUpdate(data: Cmnt, participants: string[]) {
+    const notificationData: CreateNotificationRequest = {
+      title: 'Task Updated',
+      desc: data.content,
+      participants,
+      refId: data.id,
+      refName: 'Task',
+      notifyType: 'task',
     };
 
     await this.notifyService.createNotification(notificationData);

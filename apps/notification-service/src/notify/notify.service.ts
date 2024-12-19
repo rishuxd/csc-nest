@@ -93,10 +93,16 @@ export class NotifyService {
   ): Promise<MarkAllAsReadResponse> {
     const { userId } = request;
 
-    await this.notificationModel.updateMany(
-      { participants: userId },
+    const result = await this.notificationModel.updateMany(
+      { participants: new Types.ObjectId(userId) },
       { $set: { [`readStatus.${userId}`]: true } },
     );
+
+    if (!result)
+      return {
+        message: 'Failed to mark all notifications as read',
+        success: false,
+      };
 
     return { message: 'All notifications marked as read', success: true };
   }
@@ -104,7 +110,7 @@ export class NotifyService {
   async getNotifications(
     request: GetNotificationsRequest,
   ): Promise<GetNotificationsResponse> {
-    const { userId, cursor, limit = 10 } = request;
+    const { userId, cursor, limit = 20 } = request;
 
     const query: any = { participants: new Types.ObjectId(userId) };
 

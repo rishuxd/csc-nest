@@ -65,6 +65,8 @@ export class CmntService {
       cmntType: CmntTypeEnum[request.cmntType],
       contentType: ContentTypeEnum[request.contentType],
     };
+    const isTaskUpdate = request.isTaskUpdate || false;
+    delete cmntData.isTaskUpdate;
 
     try {
       const createdCmnt = await new this.cmntModel(cmntData).save();
@@ -87,20 +89,28 @@ export class CmntService {
         [[], []] as [string[], string[]],
       );
 
-      this.sseService.broadcastToUsers(broadcastUsers, {
-        type: 'add-cmnt',
-        cmnt: createdCmnt,
-      });
-
-      const newCmnt = createdCmnt.toObject();
-      newCmnt.id = newCmnt._id.toString();
-      delete newCmnt._id;
-
-      this.cmntProducer
-        .emitEvent('cmnt-created', notifyUsers, newCmnt)
-        .catch((err) => {
-          console.error('Failed to emit cmnt-created event:', err);
+      if (broadcastUsers.length > 0) {
+        this.sseService.broadcastToUsers(broadcastUsers, {
+          type: 'add-cmnt',
+          cmnt: createdCmnt,
         });
+      }
+
+      if (notifyUsers.length > 0) {
+        const newCmnt = createdCmnt.toObject();
+        newCmnt.id = task._id.toString();
+        delete newCmnt._id;
+
+        this.cmntProducer
+          .emitEvent(
+            isTaskUpdate ? 'task-updated' : 'cmnt-created',
+            notifyUsers,
+            newCmnt,
+          )
+          .catch((err) => {
+            console.error('Failed to emit cmnt-created event:', err);
+          });
+      }
 
       return { cmnt: createdCmnt };
     } catch (error) {
@@ -187,7 +197,6 @@ export class CmntService {
 
       const updatedCmnt = await this.cmntModel
         .findByIdAndUpdate(request.cmntId, updateRequest, { new: true })
-        .lean()
         .exec();
 
       if (!updatedCmnt) {

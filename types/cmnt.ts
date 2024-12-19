@@ -5,10 +5,10 @@
 // source: proto/cmnt.proto
 
 /* eslint-disable */
-import { GrpcMethod, GrpcStreamMethod } from "@nestjs/microservices";
-import { Observable } from "rxjs";
+import { GrpcMethod, GrpcStreamMethod } from '@nestjs/microservices';
+import { Observable } from 'rxjs';
 
-export const protobufPackage = "cmnt";
+export const protobufPackage = 'cmnt';
 
 export enum CmntType {
   MSG = 0,
@@ -50,6 +50,7 @@ export interface AddCmntRequest {
   mediaUrl: string;
   replyTo: string;
   taggedUser: string[];
+  isTaskUpdate: boolean;
 }
 
 export interface EditCmntRequest {
@@ -81,7 +82,7 @@ export interface DeleteCmntResponse {
   success: boolean;
 }
 
-export const CMNT_PACKAGE_NAME = "cmnt";
+export const CMNT_PACKAGE_NAME = 'cmnt';
 
 export interface CmntServiceClient {
   addCmnt(request: AddCmntRequest): Observable<CmntResponse>;
@@ -94,32 +95,61 @@ export interface CmntServiceClient {
 }
 
 export interface CmntServiceController {
-  addCmnt(request: AddCmntRequest): Promise<CmntResponse> | Observable<CmntResponse> | CmntResponse;
+  addCmnt(
+    request: AddCmntRequest,
+  ): Promise<CmntResponse> | Observable<CmntResponse> | CmntResponse;
 
-  editCmnt(request: EditCmntRequest): Promise<CmntResponse> | Observable<CmntResponse> | CmntResponse;
+  editCmnt(
+    request: EditCmntRequest,
+  ): Promise<CmntResponse> | Observable<CmntResponse> | CmntResponse;
 
   deleteCmnt(
     request: DeleteCmntRequest,
-  ): Promise<DeleteCmntResponse> | Observable<DeleteCmntResponse> | DeleteCmntResponse;
+  ):
+    | Promise<DeleteCmntResponse>
+    | Observable<DeleteCmntResponse>
+    | DeleteCmntResponse;
 
   getCmntsByTask(
     request: GetCmntsByTaskRequest,
-  ): Promise<CmntListResponse> | Observable<CmntListResponse> | CmntListResponse;
+  ):
+    | Promise<CmntListResponse>
+    | Observable<CmntListResponse>
+    | CmntListResponse;
 }
 
 export function CmntServiceControllerMethods() {
   return function (constructor: Function) {
-    const grpcMethods: string[] = ["addCmnt", "editCmnt", "deleteCmnt", "getCmntsByTask"];
+    const grpcMethods: string[] = [
+      'addCmnt',
+      'editCmnt',
+      'deleteCmnt',
+      'getCmntsByTask',
+    ];
     for (const method of grpcMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcMethod("CmntService", method)(constructor.prototype[method], method, descriptor);
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+        constructor.prototype,
+        method,
+      );
+      GrpcMethod('CmntService', method)(
+        constructor.prototype[method],
+        method,
+        descriptor,
+      );
     }
     const grpcStreamMethods: string[] = [];
     for (const method of grpcStreamMethods) {
-      const descriptor: any = Reflect.getOwnPropertyDescriptor(constructor.prototype, method);
-      GrpcStreamMethod("CmntService", method)(constructor.prototype[method], method, descriptor);
+      const descriptor: any = Reflect.getOwnPropertyDescriptor(
+        constructor.prototype,
+        method,
+      );
+      GrpcStreamMethod('CmntService', method)(
+        constructor.prototype[method],
+        method,
+        descriptor,
+      );
     }
   };
 }
 
-export const CMNT_SERVICE_NAME = "CmntService";
+export const CMNT_SERVICE_NAME = 'CmntService';
