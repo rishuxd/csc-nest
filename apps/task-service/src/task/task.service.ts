@@ -29,16 +29,20 @@ export class TaskService {
   async createTask(request: CreateTaskRequest): Promise<TaskResponse> {
     const createdTask = await this.taskModel.create(request);
 
+    console.log('Task created 1:', createdTask);
+
     await this.cmntModel.create({
       taskId: createdTask._id.toString(),
       senderId: createdTask.assignedBy,
-      cmntType: 1,
-      contentType: 0,
+      cmntType: 'INFO',
+      contentType: 'TEXT',
       content: `Task '${createdTask.title}' is created.`,
       mediaUrl: '',
       replyTo: '',
       taggedUser: [],
     });
+
+    console.log('Task created 2:', createdTask);
 
     const participants = [createdTask.assignedTo];
 

@@ -11,18 +11,18 @@ import { Observable } from 'rxjs';
 export const protobufPackage = 'cmnt';
 
 export enum CmntType {
-  MSG = 0,
-  INFO = 1,
-  UNRECOGNIZED = -1,
+  MSG,
+  INFO,
+  UNRECOGNIZED,
 }
 
 export enum ContentType {
-  TEXT = 0,
-  IMAGE = 1,
-  VIDEO = 2,
-  AUDIO = 3,
-  FILE = 4,
-  UNRECOGNIZED = -1,
+  TEXT,
+  IMAGE,
+  VIDEO,
+  AUDIO,
+  FILE,
+  UNRECOGNIZED,
 }
 
 export interface Cmnt {
